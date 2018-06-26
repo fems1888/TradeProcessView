@@ -12,4 +12,13 @@ public class ComUtil {
         DisplayMetrics dm = context.getResources().getDisplayMetrics();
         return dm.widthPixels;
     }
+    public static String format(Object... objects){
+        StringBuilder builder = new StringBuilder();
+        for(Object o : objects){
+            if (o!= null){
+                builder.append(o);
+            }
+        }
+        return builder.toString();
+    }
 }

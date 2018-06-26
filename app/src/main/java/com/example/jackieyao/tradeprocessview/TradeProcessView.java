@@ -1,30 +1,24 @@
 package com.example.jackieyao.tradeprocessview;
 
-import android.animation.Animator;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.ComposeShader;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffXfermode;
-import android.graphics.Shader;
-import android.graphics.Xfermode;
 import android.os.Build;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.v4.view.animation.FastOutSlowInInterpolator;
 import android.util.AttributeSet;
-import android.util.Log;
-import android.view.DragEvent;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.example.jackieyao.tradeprocessview.util.ComUtil;
+
+import java.math.BigDecimal;
 
 import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 
@@ -35,8 +29,6 @@ import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 public class TradeProcessView extends View {
     private Paint mPaint;
     private Path mPath;
-    private int defaultWidth = 200;
-    private int defaultHeight = 100;
     /**
      * 绘制范围裁切path
      */
@@ -53,10 +45,6 @@ public class TradeProcessView extends View {
      */
     private boolean mNeedAnim;
 
-    /**
-     * 进度条的终端是圆弧的还是平角的
-     */
-    private boolean mIsRoundProcess;
 
     private int mStrokeColor;
     private int mbgColor;
@@ -64,6 +52,7 @@ public class TradeProcessView extends View {
     private int mTextColor;
     private float mTextSize;
     private float mStrokeWidth;
+    private String mPromptText;
 
     public TradeProcessView(Context context) {
         this(context, null);
@@ -75,21 +64,31 @@ public class TradeProcessView extends View {
 
     public TradeProcessView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        init(context, attrs, defStyleAttr);
+        init(attrs, defStyleAttr);
     }
 
-    private void init(Context context, AttributeSet attrs, int defStyleAttr) {
+    public String getmPromptText() {
+        return mPromptText;
+    }
+
+    public void setmPromptText(String mPromptText) {
+        this.mPromptText = mPromptText;
+    }
+
+    private void init(AttributeSet attrs, int defStyleAttr) {
         TypedArray ta = getContext().obtainStyledAttributes(attrs, R.styleable.TradeProcessView, defStyleAttr, 0);
         roundRadius = ta.getDimension(R.styleable.TradeProcessView_roundRadius, 40);
         mNeedStoke = ta.getBoolean(R.styleable.TradeProcessView_mNeedStoke, false);
         mNeedAnim = ta.getBoolean(R.styleable.TradeProcessView_mNeedAnim, false);
-        mIsRoundProcess = ta.getBoolean(R.styleable.TradeProcessView_mIsRoundProcess, false);
+        //进度条的终端是圆弧的还是平角的
+        boolean mIsRoundProcess = ta.getBoolean(R.styleable.TradeProcessView_mIsRoundProcess, false);
         mStrokeColor = ta.getColor(R.styleable.TradeProcessView_mStrokeColor, Color.parseColor("#FF5C8B"));
         mbgColor = ta.getColor(R.styleable.TradeProcessView_mbgColor, Color.parseColor("#40FF5C8B"));
         mProcessColor = ta.getColor(R.styleable.TradeProcessView_mProcessColor, Color.parseColor("#FF5C8B"));
         mTextColor = ta.getColor(R.styleable.TradeProcessView_mTextColor, Color.WHITE);
-        mTextSize = ta.getDimension(R.styleable.TradeProcessView_mTextSize, 30 * getWidth() / (float) defaultWidth);
+        mTextSize = ta.getDimension(R.styleable.TradeProcessView_mTextSize, 40);
         mStrokeWidth = ta.getDimension(R.styleable.TradeProcessView_mStrokeWidth, 8);
+        mPromptText = ta.getString(R.styleable.TradeProcessView_mPromptText);
         ta.recycle();
         if (mIsRoundProcess) {
             radii = new float[]{roundRadius, roundRadius, roundRadius, roundRadius, roundRadius, roundRadius, roundRadius, roundRadius};
@@ -110,10 +109,10 @@ public class TradeProcessView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
 
+
         mPaint.setStyle(Paint.Style.FILL);
         mPaint.setColor(mbgColor);
         canvas.drawRoundRect(mStrokeWidth, mStrokeWidth, getWidth() - mStrokeWidth, getHeight() - mStrokeWidth, roundRadius, roundRadius, mPaint);
-
 
         canvas.save();
         mPathClip.addRoundRect(mStrokeWidth, mStrokeWidth, getWidth() - mStrokeWidth, getHeight() - mStrokeWidth, roundRadius, roundRadius, Path.Direction.CW);
@@ -123,7 +122,13 @@ public class TradeProcessView extends View {
         mPaint.setStyle(Paint.Style.FILL);
         mPaint.setStrokeJoin(Paint.Join.ROUND);
         mPaint.setColor(mProcessColor);
-        mPath.addRoundRect(mStrokeWidth, mStrokeWidth, process + mStrokeWidth, (getHeight() - mStrokeWidth), radii, Path.Direction.CW);
+        float right;
+        if (mNeedAnim) {
+            right = process - mStrokeWidth;
+        } else {
+            right = process * getWidth() - mStrokeWidth;
+        }
+        mPath.addRoundRect(mStrokeWidth, mStrokeWidth, right, (getHeight() - mStrokeWidth), radii, Path.Direction.CW);
 
         canvas.drawPath(mPath, mPaint);
         canvas.restore();
@@ -139,17 +144,18 @@ public class TradeProcessView extends View {
         }
 
         mPaint.reset();
-        mPaint.setColor(Color.WHITE);
-        mPaint.setTextSize(30 * getWidth() / 200f);
-        String str = "剩余" + Math.floor((process * 100 / getWidth())) + "%";
-        float textWidth = mPaint.measureText(str);
+        mPaint.setColor(mTextColor);
+        mPaint.setTextSize(mTextSize);
+
+        String format = mNeedAnim ? ComUtil.format(mPromptText, new BigDecimal(((int) process * 100 / getWidth())).stripTrailingZeros().toPlainString(), "%") : ComUtil.format(mPromptText, new BigDecimal(process * 100).intValue(), "%");
+        float textWidth = mPaint.measureText(format);
         float ascent = mPaint.ascent();
         float descent = mPaint.descent();
         float textHeight = ascent + descent;
 
         float x = (getWidth() - textWidth) / 2;
         float y = (getHeight() - textHeight) / 2;
-        canvas.drawText(str, x, y, mPaint);
+        canvas.drawText(format, x, y, mPaint);
 
 
     }
@@ -166,10 +172,18 @@ public class TradeProcessView extends View {
     }
 
 
-    public void anim() {
-        ObjectAnimator animator = ObjectAnimator.ofFloat(this, "process", 0, getWidth() - 100);
+    public void anim(float process) {
+
+
+        if (!mNeedAnim) {
+            setProcess(process);
+            return;
+        }
+        ObjectAnimator animator = ObjectAnimator.ofFloat(this, "process", 0, getWidth() * process);
         animator.setDuration(1000L);
         animator.setInterpolator(new FastOutSlowInInterpolator());
+        animator.setRepeatCount(ValueAnimator.INFINITE);
+        animator.setRepeatMode(ValueAnimator.RESTART);
         animator.start();
     }
 
@@ -177,16 +191,17 @@ public class TradeProcessView extends View {
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         ViewGroup.LayoutParams layoutParams = getLayoutParams();
+
         int width;
         int height;
         if (layoutParams.width == WRAP_CONTENT) {
-            width = defaultWidth;
+            width = 200;
         } else {
             width = layoutParams.width;
         }
 
         if (layoutParams.height == WRAP_CONTENT) {
-            height = defaultHeight;
+            height = 100;
         } else {
             height = layoutParams.height;
         }

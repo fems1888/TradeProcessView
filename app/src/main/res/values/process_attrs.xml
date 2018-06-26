@@ -27,5 +27,6 @@
         <attr name="mTextColor" format="color"/>
         <attr name="mTextSize" format="dimension"/>
         <attr name="mStrokeWidth" format="dimension"/>
+        <attr name="mPromptText" format="string"/>
     </declare-styleable>
 </resources>
