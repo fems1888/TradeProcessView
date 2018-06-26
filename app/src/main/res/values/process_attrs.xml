@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--private float roundRadius;
+    /**
+     * 是否需要描边
+     */
+    private boolean mNeedStoke;
+
+    /**
+     * 是否需要动画
+     */
+    private boolean mNeedAnim;
+
+    private int mStrokeColor;
+    private int mbgColor;
+    private int mProcessColor;
+    private int mTextColor;
+    private int mTextSize;-->
+<resources>
+    <declare-styleable name="TradeProcessView">
+        <attr name="roundRadius" format="dimension"/>
+        <attr name="mNeedStoke" format="boolean"/>
+        <attr name="mNeedAnim" format="boolean"/>
+        <attr name="mIsRoundProcess" format="boolean"/>
+        <attr name="mStrokeColor" format="color"/>
+        <attr name="mbgColor" format="color"/>
+        <attr name="mProcessColor" format="color"/>
+        <attr name="mTextColor" format="color"/>
+        <attr name="mTextSize" format="dimension"/>
+        <attr name="mStrokeWidth" format="dimension"/>
+    </declare-styleable>
+</resources>
