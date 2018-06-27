@@ -55,14 +55,15 @@
         <!--是否需要百分号-->
         <attr name="mNeedPercent" format="boolean"/>
     </declare-styleable>
-    ```
+```
 使用方法
-===
+ ===
 XML布局
 --
 
 * 新建XML布局
 ```Java
+
  <com.example.jackieyao.tradeprocessview.TradeProcessView
             android:id="@+id/view"
             android:layout_width="150dp"
@@ -80,9 +81,12 @@ XML布局
             app:mPromptTextEnd="已售罄"
             app:mStrokeColor="#F8E71C"
             />
+            
 ```
-===
+
+
 JAVA代码
+=====
 --
 * activity里
 上面XML里的属性，在activity界面都可以直接用代码设置。setter/getter方法
