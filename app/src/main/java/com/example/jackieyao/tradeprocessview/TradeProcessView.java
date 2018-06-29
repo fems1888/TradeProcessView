@@ -4,10 +4,13 @@ import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
 import android.os.Build;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
@@ -44,6 +47,7 @@ public class TradeProcessView extends View {
      * 是否需要动画
      */
     private boolean mNeedAnim;
+    private boolean mNeedPercent;
 
 
     private int mStrokeColor;
@@ -53,6 +57,8 @@ public class TradeProcessView extends View {
     private float mTextSize;
     private float mStrokeWidth;
     private String mPromptText;
+    private String mPromptTextEnd;
+    private PorterDuffXfermode xfermode;
 
     public TradeProcessView(Context context) {
         this(context, null);
@@ -67,19 +73,12 @@ public class TradeProcessView extends View {
         init(attrs, defStyleAttr);
     }
 
-    public String getmPromptText() {
-        return mPromptText;
-    }
-
-    public void setmPromptText(String mPromptText) {
-        this.mPromptText = mPromptText;
-    }
-
     private void init(AttributeSet attrs, int defStyleAttr) {
         TypedArray ta = getContext().obtainStyledAttributes(attrs, R.styleable.TradeProcessView, defStyleAttr, 0);
         roundRadius = ta.getDimension(R.styleable.TradeProcessView_roundRadius, 40);
         mNeedStoke = ta.getBoolean(R.styleable.TradeProcessView_mNeedStoke, false);
         mNeedAnim = ta.getBoolean(R.styleable.TradeProcessView_mNeedAnim, false);
+        mNeedPercent = ta.getBoolean(R.styleable.TradeProcessView_mNeedPercent, true);
         //进度条的终端是圆弧的还是平角的
         boolean mIsRoundProcess = ta.getBoolean(R.styleable.TradeProcessView_mIsRoundProcess, false);
         mStrokeColor = ta.getColor(R.styleable.TradeProcessView_mStrokeColor, Color.parseColor("#FF5C8B"));
@@ -89,13 +88,14 @@ public class TradeProcessView extends View {
         mTextSize = ta.getDimension(R.styleable.TradeProcessView_mTextSize, 40);
         mStrokeWidth = ta.getDimension(R.styleable.TradeProcessView_mStrokeWidth, 8);
         mPromptText = ta.getString(R.styleable.TradeProcessView_mPromptText);
+        mPromptTextEnd = ta.getString(R.styleable.TradeProcessView_mPromptTextEnd);
         ta.recycle();
         if (mIsRoundProcess) {
             radii = new float[]{roundRadius, roundRadius, roundRadius, roundRadius, roundRadius, roundRadius, roundRadius, roundRadius};
         } else {
             radii = new float[]{roundRadius, roundRadius, 0, 0, 0, 0, roundRadius, roundRadius};
         }
-
+        xfermode = new PorterDuffXfermode(PorterDuff.Mode.SRC_IN);
     }
 
     {
@@ -109,7 +109,6 @@ public class TradeProcessView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
 
-
         mPaint.setStyle(Paint.Style.FILL);
         mPaint.setColor(mbgColor);
         canvas.drawRoundRect(mStrokeWidth, mStrokeWidth, getWidth() - mStrokeWidth, getHeight() - mStrokeWidth, roundRadius, roundRadius, mPaint);
@@ -122,7 +121,8 @@ public class TradeProcessView extends View {
         mPaint.setStyle(Paint.Style.FILL);
         mPaint.setStrokeJoin(Paint.Join.ROUND);
         mPaint.setColor(mProcessColor);
-        float right;
+        float right=0;
+        mPath.reset();
         if (mNeedAnim) {
             right = process - mStrokeWidth;
         } else {
@@ -144,10 +144,18 @@ public class TradeProcessView extends View {
         }
 
         mPaint.reset();
-        mPaint.setColor(mTextColor);
+        mPaint.setColor(Color.RED);
         mPaint.setTextSize(mTextSize);
+        String format;
+        if (process == 0 ){
+            format = ComUtil.format(mPromptTextEnd);
+        }else {
+            format = mNeedAnim ? ComUtil.format(mPromptText, new BigDecimal(((int) process * 100 / getWidth())).stripTrailingZeros().toPlainString(), mNeedPercent?"%":"") : ComUtil.format(mPromptText, new BigDecimal(process * 100).intValue(), mNeedPercent?"%":"");
+        }
 
-        String format = mNeedAnim ? ComUtil.format(mPromptText, new BigDecimal(((int) process * 100 / getWidth())).stripTrailingZeros().toPlainString(), "%") : ComUtil.format(mPromptText, new BigDecimal(process * 100).intValue(), "%");
+        Bitmap textBitmap = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888);
+        Canvas textCanvas = new Canvas(textBitmap);
+
         float textWidth = mPaint.measureText(format);
         float ascent = mPaint.ascent();
         float descent = mPaint.descent();
@@ -155,7 +163,18 @@ public class TradeProcessView extends View {
 
         float x = (getWidth() - textWidth) / 2;
         float y = (getHeight() - textHeight) / 2;
-        canvas.drawText(format, x, y, mPaint);
+
+        textCanvas.drawText(format, x, y, mPaint);
+
+
+        mPaint.setXfermode(xfermode);
+
+        mPaint.setColor(Color.WHITE);
+        textCanvas.drawPath(mPath, mPaint);
+        //为空时因为textbitmap 已经有Paint画出来了
+        canvas.drawBitmap(textBitmap,0,0,null);
+
+        mPaint.setXfermode(null);
 
 
     }
@@ -171,6 +190,12 @@ public class TradeProcessView extends View {
         postInvalidate();
     }
 
+    public void seekBar(float process) {
+        mNeedAnim = false;
+        this.process = process;
+        postInvalidate();
+    }
+
 
     public void anim(float process) {
 
@@ -180,10 +205,10 @@ public class TradeProcessView extends View {
             return;
         }
         ObjectAnimator animator = ObjectAnimator.ofFloat(this, "process", 0, getWidth() * process);
-        animator.setDuration(1000L);
+        animator.setDuration(1600L);
         animator.setInterpolator(new FastOutSlowInInterpolator());
-        animator.setRepeatCount(ValueAnimator.INFINITE);
         animator.setRepeatMode(ValueAnimator.RESTART);
+        animator.setRepeatCount(4);
         animator.start();
     }
 
@@ -210,4 +235,101 @@ public class TradeProcessView extends View {
         height = resolveSize(height, heightMeasureSpec);
         setMeasuredDimension(width, height);
     }
+
+    public float getRoundRadius() {
+        return roundRadius;
+    }
+
+    public void setRoundRadius(float roundRadius) {
+        this.roundRadius = roundRadius;
+    }
+
+    public boolean ismNeedStoke() {
+        return mNeedStoke;
+    }
+
+    public void setmNeedStoke(boolean mNeedStoke) {
+        this.mNeedStoke = mNeedStoke;
+    }
+
+    public boolean ismNeedAnim() {
+        return mNeedAnim;
+    }
+
+    public void setmNeedAnim(boolean mNeedAnim) {
+        this.mNeedAnim = mNeedAnim;
+    }
+
+    public boolean ismNeedPercent() {
+        return mNeedPercent;
+    }
+
+    public void setmNeedPercent(boolean mNeedPercent) {
+        this.mNeedPercent = mNeedPercent;
+    }
+
+    public int getmStrokeColor() {
+        return mStrokeColor;
+    }
+
+    public void setmStrokeColor(int mStrokeColor) {
+        this.mStrokeColor = mStrokeColor;
+    }
+
+    public int getMbgColor() {
+        return mbgColor;
+    }
+
+    public void setMbgColor(int mbgColor) {
+        this.mbgColor = mbgColor;
+    }
+
+    public int getmProcessColor() {
+        return mProcessColor;
+    }
+
+    public void setmProcessColor(int mProcessColor) {
+        this.mProcessColor = mProcessColor;
+    }
+
+    public int getmTextColor() {
+        return mTextColor;
+    }
+
+    public void setmTextColor(int mTextColor) {
+        this.mTextColor = mTextColor;
+    }
+
+    public float getmTextSize() {
+        return mTextSize;
+    }
+
+    public void setmTextSize(float mTextSize) {
+        this.mTextSize = mTextSize;
+    }
+
+    public float getmStrokeWidth() {
+        return mStrokeWidth;
+    }
+
+    public void setmStrokeWidth(float mStrokeWidth) {
+        this.mStrokeWidth = mStrokeWidth;
+    }
+
+    public String getmPromptText() {
+        return mPromptText;
+    }
+
+    public void setmPromptText(String mPromptText) {
+        this.mPromptText = mPromptText;
+    }
+
+    public String getmPromptTextEnd() {
+        return mPromptTextEnd;
+    }
+
+    public void setmPromptTextEnd(String mPromptTextEnd) {
+        this.mPromptTextEnd = mPromptTextEnd;
+    }
+
 }

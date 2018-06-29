@@ -24,12 +24,25 @@
             android:layout_width="150dp"
             android:layout_height="50dp"
             android:layout_marginTop="10dp"
-            app:mNeedStoke="false"
             android:layout_below="@id/btn"
-            app:mIsRoundProcess="true"
+            app:mNeedStoke="false"
+            app:mIsRoundProcess="false"
             app:mNeedAnim="true"
             app:mTextSize="20dp"
-            app:mTextColor="#F8E71C"/>
+            app:mStrokeWidth="1dp"
+            app:mTextColor="#FFFFFF"
+            app:mNeedPercent="true"
+            app:mPromptText="剩余"
+            app:roundRadius="28dp"
+            app:mPromptTextEnd="已售罄"
+            app:mStrokeColor="#F8E71C"
+            />
 
+    <android.support.v7.widget.AppCompatSeekBar
+        android:id="@+id/seek"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/view"
+        android:layout_marginTop="30dp"/>
 
 </com.example.jackieyao.tradeprocessview.CustomerLayout>

@@ -1,32 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--private float roundRadius;
-    /**
-     * 是否需要描边
-     */
-    private boolean mNeedStoke;
-
-    /**
-     * 是否需要动画
-     */
-    private boolean mNeedAnim;
-
-    private int mStrokeColor;
-    private int mbgColor;
-    private int mProcessColor;
-    private int mTextColor;
-    private int mTextSize;-->
 <resources>
     <declare-styleable name="TradeProcessView">
+        <!--进度条控件的圆角 大于0就是有圆角 等于0就是平角-->
         <attr name="roundRadius" format="dimension"/>
+
+        <!--进度条控件外围是否有描边-->
         <attr name="mNeedStoke" format="boolean"/>
-        <attr name="mNeedAnim" format="boolean"/>
-        <attr name="mIsRoundProcess" format="boolean"/>
+
+        <!--进度条控件的秒边的颜色-->
         <attr name="mStrokeColor" format="color"/>
-        <attr name="mbgColor" format="color"/>
-        <attr name="mProcessColor" format="color"/>
-        <attr name="mTextColor" format="color"/>
-        <attr name="mTextSize" format="dimension"/>
+
+        <!--进度条控件的秒边的宽度-->
         <attr name="mStrokeWidth" format="dimension"/>
+
+        <!--进度条控件的进度是直接显示还是动画显示-->
+        <attr name="mNeedAnim" format="boolean"/>
+
+        <!--进度条控件的进度(secondaryProcess)是平角的  还是圆角的-->
+        <attr name="mIsRoundProcess" format="boolean"/>
+
+        <!--进度条控件的背景颜色-->
+        <attr name="mbgColor" format="color"/>
+
+        <!--进度条控件的进度（secondaryProcess）的颜色-->
+        <attr name="mProcessColor" format="color"/>
+
+        <!--进度条控件的文字颜色-->
+        <attr name="mTextColor" format="color"/>
+
+        <!--进度条控件的文字大小-->
+        <attr name="mTextSize" format="dimension"/>
+
+        <!--进度条控件的文字内容-->
         <attr name="mPromptText" format="string"/>
+
+
+        <!--进度条控件结束的文字内容-->
+        <attr name="mPromptTextEnd" format="string"/>
+
+        <!--是否需要百分号-->
+        <attr name="mNeedPercent" format="boolean"/>
     </declare-styleable>
 </resources>
