@@ -8,6 +8,7 @@ import android.support.v7.widget.AppCompatSeekBar;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 
@@ -15,7 +16,7 @@ import android.widget.SeekBar;
  * @author Created by jackieyao on 2018/6/26 下午5:07.
  */
 
-public class CustomerLayout extends RelativeLayout {
+public class CustomerLayout extends LinearLayout {
     private Button button;
     TradeProcessView tradeProcessView;
 
