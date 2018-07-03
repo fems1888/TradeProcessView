@@ -134,7 +134,6 @@ public class TradeProcessView extends View {
         canvas.drawPath(mPath, mPaint);
         canvas.restore();
 
-
         if (mNeedStoke) {
             mPaint.reset();
             mPaint.setStyle(Paint.Style.STROKE);
@@ -193,23 +192,21 @@ public class TradeProcessView extends View {
 
     public void seekBar(float process) {
         mNeedAnim = false;
+        if (animator!=null){
+            animator.cancel();
+        }
         this.process = process;
         postInvalidate();
     }
 
-
+    ObjectAnimator animator;
     public void anim(float process) {
-
-
-        if (!mNeedAnim) {
-            setProcess(process);
-            return;
-        }
-        ObjectAnimator animator = ObjectAnimator.ofFloat(this, "process", 0, getWidth() * process);
-        animator.setDuration(1600L);
+        mNeedAnim = true;
+         animator = ObjectAnimator.ofFloat(this, "process", 0, getWidth() * process);
+        animator.setDuration(2200L);
         animator.setInterpolator(new FastOutSlowInInterpolator());
         animator.setRepeatMode(ValueAnimator.RESTART);
-        animator.setRepeatCount(4);
+        animator.setRepeatCount(ValueAnimator.INFINITE);
         animator.start();
     }
 
