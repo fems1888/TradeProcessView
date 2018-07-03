@@ -122,6 +122,7 @@ public class TradeProcessView extends View {
         mPaint.setStrokeJoin(Paint.Join.ROUND);
         mPaint.setColor(mProcessColor);
         float right=0;
+        //如果path不设置reset  那么就不能实现重复动画   因为已经有path路劲填充了
         mPath.reset();
         if (mNeedAnim) {
             right = process - mStrokeWidth;

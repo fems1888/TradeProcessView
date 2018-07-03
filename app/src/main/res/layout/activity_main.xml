@@ -22,7 +22,7 @@
             android:layout_height="50dp"
             android:layout_marginTop="10dp"
             android:layout_below="@id/btn"
-            app:mNeedStoke="false"
+            app:mNeedStoke="true"
             app:mIsRoundProcess="false"
             app:mNeedAnim="true"
             app:mTextSize="20dp"
