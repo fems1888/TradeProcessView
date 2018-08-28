@@ -6,11 +6,16 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.TextureView;
 
 import com.example.jackieyao.tradeprocessview.util.ComUtil;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 
 /**
@@ -28,6 +33,7 @@ public class MySurfaceView extends SurfaceView implements SurfaceHolder.Callback
     private boolean isDrawing = true;
     private int drawX;
     private int drawY;
+    List<Integer> list;
 
     public MySurfaceView(Context context) {
         this(context,null);
@@ -48,7 +54,7 @@ public class MySurfaceView extends SurfaceView implements SurfaceHolder.Callback
         mTextPaint.setColor(Color.RED);
         mTextPaint.setTextSize(30);
         mPaint.setAntiAlias(true);
-        mPaint.setStyle(Paint.Style.STROKE);
+        mPaint.setStyle(Paint.Style.FILL_AND_STROKE);
         mPaint.setStrokeWidth(5);
         mPaint.setColor(Color.GREEN);
         //连接处更加平滑
@@ -58,6 +64,10 @@ public class MySurfaceView extends SurfaceView implements SurfaceHolder.Callback
         mSurfaceHolder = getHolder();
         mSurfaceHolder.addCallback(this);
 
+        list = new ArrayList<>();
+        for (int i = 0; i < 450; i++) {
+            list.add(i);
+        }
     }
 
 
@@ -68,7 +78,7 @@ public class MySurfaceView extends SurfaceView implements SurfaceHolder.Callback
 
     @Override
     public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
-
+        Log.e("=====>>>",i+"  "+i1+"   "+i2);
     }
 
     @Override
@@ -78,14 +88,16 @@ public class MySurfaceView extends SurfaceView implements SurfaceHolder.Callback
 
     @Override
     public void run() {
-
         while (isDrawing) {
             drawX++;
-            drawY = (int) (100 * Math.sin(drawX * 2 * Math.PI / 180) + 400);
-            mPath.lineTo(drawX, drawY);
+//            drawY = (int) (100 * Math.sin(drawX * 2 * Math.PI / 180) + 400);
+            drawY = list.get(drawX);
+//            mPath.lineTo(drawX, drawY);
+            mPath.addRect(450,0,500,drawY, Path.Direction.CW);
             mDraw(mPath,drawX,drawY);
         }
     }
+
 
     private void mDraw(Path mPath, int drawX, int drawY) {
         Canvas canvas = null;
@@ -96,7 +108,7 @@ public class MySurfaceView extends SurfaceView implements SurfaceHolder.Callback
             canvas.drawText("X:"+drawX+" Y:"+drawY,drawX,drawY,mTextPaint);
 //            canvas.drawCircle(drawX,drawY,30,mPaint);
             mSurfaceHolder.unlockCanvasAndPost(canvas);
-            if (drawX>ComUtil.getScreenWidth(getContext())-200){
+            if (drawX>ComUtil.getScreenWidth(getContext())-200||drawX == 449){
                 isDrawing = false;
             }
         }
